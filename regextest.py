@@ -62,11 +62,23 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchFirst(testStr), (7, "a"))
         self.assertEqual(r.matchAll(testStr), [(7,"a"), (10,"a"), (22,"B"), (29,"B")])
 
+    def test5Alternation_advanced(self):
+        r = RegexMatcher("a+|Bdg")
+        testStr = "thereaa was aaa!#@time in BdgolognABdg"
+        self.assertEqual(r.matchFirst(testStr), (5, "aa"))
+        self.assertEqual(r.matchAll(testStr), [(5,"aa"), (9,"a"), (12,"aaa"), (26,"Bdg"), (35,"Bdg")])
+
     def test7ZeroOrMore(self):
         r = RegexMatcher("a*")
         testStr = "there was aa!#@time in BolognAB"
         self.assertEqual(r.matchFirst(testStr), (7, "a"))
         self.assertEqual(r.matchAll(testStr), [(7,"a"), (10,"aa")])
+
+    def test7ZeroOrMore_advanced(self):
+        r = RegexMatcher("ba*b")
+        testStr = "thbbere wbabs aa!#@time in baaabBolognABba"
+        self.assertEqual(r.matchFirst(testStr), (2, "bb"))
+        self.assertEqual(r.matchAll(testStr), [(2,"bb"), (9,"bab"), (27,"baaab")])
 
     def test8ZeroOrOne(self):
         r = RegexMatcher("a?")
@@ -96,17 +108,25 @@ class TestRegexMethods(unittest.TestCase):
 
 
 # use as E2E test
-    def test10MultiplePatterns(self):
+    def testAMultiplePatterns(self):
         pass
 
     # extra functionality test methods
 
-    def test11ListOfChars(self):
+    def testBListOfChars(self):
         pass
 
-    def test12RangeOfChars(self):
+    def testCRangeOfChars(self):
         pass
 
+    def testDBeginningOfLine(self):
+            pass
+
+    def testEEndOfLine(self):
+            pass
+
+    def testFSearchInFile(self):
+        pass
 
 
 

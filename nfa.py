@@ -31,7 +31,8 @@ REGEX_OPS = {'\\': "escape",
              '.' : "dot", 
              '|' : "or"}
 
-SPLIT_NODE = chr(257)
+# represents a state that doesn't require an input to advance to it
+NO_CHAR = chr(257)
 
 class NFA(object):
     """ represents a container object for a Nondeterministic Finite Automaton """
@@ -49,20 +50,26 @@ class NFA(object):
                 n = NFAState(c)
                 stateStack.append(n)
             else :
-                if c == '+':
+                if c == '+' or c == '*':
                     # add transition via previous state's letter back to itself
                     repeatedState = stateStack.pop()
                     repeatedState.addNextState(repeatedState)
+                    if c == '*': 
+                        # transitioning to this state shouldn't require input
+                        repeatedState.letter = NO_CHAR
                     stateStack.append(repeatedState)
                 elif c == '|':
                     # all current states in stack are a valid path; set finish=True
                     # on the top state & chain all states in stack together
-                    split = NFAState(SPLIT_NODE)
+                    split = NFAState(NO_CHAR)
 
                     altBranch = self._chainStateStack(stateStack)
                     split.addNextState(altBranch)
                     # put state chain back onto the stack & repeat the above steps
                     stateStack.append(split)
+                    
+
+                    
 
 
 
@@ -86,7 +93,7 @@ class NFA(object):
         return prevState
 
 
-# puts the NFA back to its first state
+# puts the NFA back to its start state
     def reset(self):
         if self.currentStates != [self.startState]:
             self.currentStates = [self.startState]
@@ -97,12 +104,10 @@ class NFA(object):
         newStates = []
         while self.currentStates:
             sa = self.currentStates.pop()
-            if sa.nexts.keys() and SPLIT_NODE in sa.nexts:
-                print("HELLO")
+            if sa.nexts.keys() and NO_CHAR in sa.nexts:
                 # auto-advance to next state by adding all possible next 
                 # states from the split to list currentStates to be processed
-                self.currentStates.extend(sa.nexts[SPLIT_NODE])
-                print("ASD")
+                self.currentStates.extend(sa.nexts[NO_CHAR])
             elif letter in sa.nexts:
                 newStates.extend(sa.nexts[letter])
 
