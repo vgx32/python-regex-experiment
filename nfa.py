@@ -35,6 +35,7 @@ REGEX_OPS = {'\\': "escape",
 
 # represents a state that doesn't require an input to advance to it
 NO_CHAR = chr(257)
+ANY_CHAR = chr(258)
 
 class NFA(object):
     """ represents a container object for a Nondeterministic Finite Automaton """
@@ -74,6 +75,9 @@ class NFA(object):
                     zerooneState.letter = NO_CHAR + zerooneState.letter
                     # print(zerooneState)
                     stateStack.append(zerooneState)
+                elif c == '.':
+                    anycharState = NFAState(ANY_CHAR)
+                    stateStack.append(anycharState)
 
         firstCharState = self._chainStateStack(stateStack)
         
@@ -108,12 +112,16 @@ class NFA(object):
         newStates = []
         while self.currentStates:
             sa = self.currentStates.pop()
-            if sa.nexts.keys() and NO_CHAR in sa.nexts and letter not in sa.nexts:
+            if ANY_CHAR in sa.nexts and ord(letter) < 256 and ord(letter) >= 0:
+                # any char state transition
+                newStates.extend(sa.nexts[ANY_CHAR])
+            elif sa.nexts.keys() and NO_CHAR in sa.nexts and letter not in sa.nexts:
                 # auto-advance to next state by adding all possible next 
                 # states from the split to list currentStates to be processed
                 self.currentStates.extend(sa.nexts[NO_CHAR])
             elif letter in sa.nexts:
                 newStates.extend(sa.nexts[letter])
+            
 
         if newStates:
             self.currentStates = newStates

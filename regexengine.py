@@ -43,17 +43,19 @@ class RegexMatcher(object):
             curChar = inStr[i]
             advanced = self.stateMachine.advanceStates(curChar)
             i += 1
-
             if self.stateMachine.finished():
                 # potential match found;
                 # keep looking for matching chars
-                while i < len(inStr) and advanced:
+                # print(startIndex, i)
+                if i < len(inStr):
                     curChar = inStr[i]
                     advanced = self.stateMachine.advanceStates(curChar)
-                    i += 1
-                if i < len(inStr):
-                    i -= 1
 
+                while i < len(inStr)-1 and advanced:
+                    i += 1
+                    curChar = inStr[i]
+                    advanced = self.stateMachine.advanceStates(curChar)
+                
                 return (startIndex, inStr[startIndex : i])
 
             if not advanced:

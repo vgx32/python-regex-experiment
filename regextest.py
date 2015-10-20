@@ -26,6 +26,7 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchFirst("a"), (0, "a"))
         self.assertEqual(r.matchFirst("ba"), (1, "a"))
         self.assertEqual(r.matchFirst("BA"), ())
+        self.assertEqual(r.matchAll("aaa"), [(0, "a"), (1, "a"), (2, "a")])
         self.assertEqual(r.matchAll("132KAa(lkga"), [(5,"a"), (10,"a")])
         self.assertEqual(r.matchAll(""), [])
 
@@ -123,10 +124,10 @@ class TestRegexMethods(unittest.TestCase):
         pass
 
     def testDBeginningOfLine(self):
-            pass
+        pass
 
     def testEEndOfLine(self):
-            pass
+        pass
 
     def testFSearchInFile(self):
         pass
