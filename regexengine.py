@@ -42,10 +42,19 @@ class RegexMatcher(object):
         while i < len(inStr):
             curChar = inStr[i]
             advanced = self.stateMachine.advanceStates(curChar)
-            if self.stateMachine.finished():
-                return (startIndex, inStr[startIndex : i+1])
-
             i += 1
+
+            if self.stateMachine.finished():
+                # search through end of string until we're no longer advancing in NFA
+                while i < len(inStr) and advanced:
+                    curChar = inStr[i]
+                    advanced = self.stateMachine.advanceStates(curChar)
+                    i += 1
+                if i < len(inStr):
+                    i -= 1
+
+                return (startIndex, inStr[startIndex : i])
+
             if not advanced:
                 self.stateMachine.reset()
                 startIndex = i

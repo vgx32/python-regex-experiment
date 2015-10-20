@@ -43,26 +43,11 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchAll(testStr), [(0,"abc"), (18,"abcc"), (23,"abc")])
         
 
-
-    def test3AnyChar(self):
-        r = RegexMatcher(".")
-        testStr = "ab23%"
-        self.assertEqual(r.matchFirst(testStr), (0, "a"))
-        self.assertEqual(r.matchAll(testStr), [(0,"a"), (1,"b"), (2,"2"), (3,"3"), (4,"%")])
-        
-
-    def test3EscapeChar(self):
-        r = RegexMatcher("\.\(\)")
-        testStr = "a.()bc.()\n\t sdf"
-        self.assertEqual(r.matchFirst(testStr), (1, ".()"))
-        self.assertEqual(r.matchAll(testStr), [(1,".()"), (4,".()")])
-
-
     def test4OneOrMore(self):
         r = RegexMatcher("a+")
         testStr = "aabbe231a3f2&#!aaaa \nTll timesa"
         self.assertEqual(r.matchFirst(testStr), (0, "aa"))
-        self.assertEqual(r.matchAll(testStr), [(0,"aa"), (9,"a"), (14,"aaaa"), (30,"a")])
+        self.assertEqual(r.matchAll(testStr), [(0,"aa"), (8,"a"), (15,"aaaa"), (30,"a")])
 
     
     def test6Alternation(self):
@@ -88,6 +73,21 @@ class TestRegexMethods(unittest.TestCase):
         testStr = "abt1209 ;asdnl ababt24309laxlababababt"
         self.assertEqual(r.matchFirst(testStr), (0, abt))
         self.assertEqual(r.matchAll(testStr), [(0,"abt"), (15,"ababt"), (29,"ababababt")])
+
+
+    def testaAnyChar(self):
+        r = RegexMatcher(".")
+        testStr = "ab23%"
+        self.assertEqual(r.matchFirst(testStr), (0, "a"))
+        self.assertEqual(r.matchAll(testStr), [(0,"a"), (1,"b"), (2,"2"), (3,"3"), (4,"%")])
+        
+
+    def testaEscapeChar(self):
+        r = RegexMatcher("\.\(\)")
+        testStr = "a.()bc.()\n\t sdf"
+        self.assertEqual(r.matchFirst(testStr), (1, ".()"))
+        self.assertEqual(r.matchAll(testStr), [(1,".()"), (4,".()")])
+
 
 # use as E2E test
     def test10MultiplePatterns(self):

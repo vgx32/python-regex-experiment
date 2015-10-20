@@ -43,10 +43,15 @@ class NFA(object):
         for c in pattern:
             if c not in REGEX_OPS:
                 n = NFAState(c)
-            # else :
-                # if c == '+':
+                stateStack.append(n)
+            else :
+                if c == '+':
+                    repeatedState = stateStack.pop()
+                    repeatedState.addNextState(repeatedState)
+                    stateStack.append(repeatedState)
+                # elif c == '.':
                     
-            stateStack.append(n)
+            
 
         prevState = stateStack.pop()
         prevState.finish = True 
