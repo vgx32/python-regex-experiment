@@ -10,14 +10,16 @@ class NFAState(object):
     def addNextState(self, state, letter=None):
         if not letter:
             letter = state.letter
-        nextState = self.nexts.get(letter)
-        if nextState:
-            nextState.append(state)
-        else:
-            self.nexts[letter] = [state]
+        for l in state.letter:
+            # print(l)
+            nextState = self.nexts.get(l)
+            if nextState:
+                nextState.append(state)
+            else:
+                self.nexts[l] = [state]
 
     def __str__(self):
-        result = "letter " + str(self.letter) + "\nfinish: " + str(self.finish) + "\nnexts: \n" + str(self.nexts)
+        result = "letter: " + str(self.letter) + "\nfinish: " + str(self.finish) + "\nnexts: \n" + str(self.nexts)
         for k in self.nexts.keys():
             result += "\n" + str(k) + ":\n"
             for state in self.nexts[k]:
@@ -28,8 +30,8 @@ REGEX_OPS = {'\\': "escape",
              '*' : "zeromore", 
              '+' : "onemore", 
              '?' : "zeroone", 
-             '.' : "dot", 
-             '|' : "or"}
+             '.' : "anychar", 
+             '|' : "alternate"}
 
 # represents a state that doesn't require an input to advance to it
 NO_CHAR = chr(257)
@@ -67,11 +69,11 @@ class NFA(object):
                     split.addNextState(altBranch)
                     # put state chain back onto the stack & repeat the above steps
                     stateStack.append(split)
-                    
-
-                    
-
-
+                elif c == '?':
+                    zerooneState = stateStack.pop()
+                    zerooneState.letter = NO_CHAR + zerooneState.letter
+                    # print(zerooneState)
+                    stateStack.append(zerooneState)
 
         firstCharState = self._chainStateStack(stateStack)
         
@@ -87,7 +89,9 @@ class NFA(object):
         prevState.finish = True 
         while stateStack:
             curState = stateStack.pop()
+         
             curState.addNextState(prevState)
+
             prevState = curState
 
         return prevState
@@ -104,7 +108,7 @@ class NFA(object):
         newStates = []
         while self.currentStates:
             sa = self.currentStates.pop()
-            if sa.nexts.keys() and NO_CHAR in sa.nexts:
+            if sa.nexts.keys() and NO_CHAR in sa.nexts and letter not in sa.nexts:
                 # auto-advance to next state by adding all possible next 
                 # states from the split to list currentStates to be processed
                 self.currentStates.extend(sa.nexts[NO_CHAR])
