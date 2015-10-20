@@ -56,7 +56,7 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchAll(testStr), [(0,"aaab"), (30,"aab"), (34,"ab")])
 
     
-    def test6Alternation(self):
+    def test5Alternation(self):
         r = RegexMatcher("a|B")
         testStr = "there was a!#@time in BolognAB"
         self.assertEqual(r.matchFirst(testStr), (7, "a"))
