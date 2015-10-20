@@ -49,6 +49,12 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchFirst(testStr), (0, "aa"))
         self.assertEqual(r.matchAll(testStr), [(0,"aa"), (8,"a"), (15,"aaaa"), (30,"a")])
 
+    def test4OneOrMore_advanced(self):
+        r = RegexMatcher("a+b")
+        testStr = "aaabbe231a3f2&#!aaaa \nTll timeaabsab"
+        self.assertEqual(r.matchFirst(testStr), (0, "aaab"))
+        self.assertEqual(r.matchAll(testStr), [(0,"aaab"), (30,"aab"), (34,"ab")])
+
     
     def test6Alternation(self):
         r = RegexMatcher("a|B")

@@ -45,7 +45,8 @@ class RegexMatcher(object):
             i += 1
 
             if self.stateMachine.finished():
-                # search through end of string until we're no longer advancing in NFA
+                # potential match found;
+                # keep looking for matching chars
                 while i < len(inStr) and advanced:
                     curChar = inStr[i]
                     advanced = self.stateMachine.advanceStates(curChar)
