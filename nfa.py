@@ -10,28 +10,36 @@ class NFAState(object):
     def addNextState(self, state, letter=None):
         if not letter:
             letter = state.letter
+        
         for l in state.letter:
-            # print(l)
             nextState = self.nexts.get(l)
-            if nextState:
+            if nextState: 
+                # state already contains a transition for this letter
                 nextState.append(state)
             else:
                 self.nexts[l] = [state]
+
+    def getNextStates(self):
+        result = []
+        for k in self.nexts.keys():
+            result.extend(self.nexts[k])
+        return set(result)
 
     def __str__(self):
         result = "letter: " + str(self.letter) + "\nfinish: " + str(self.finish) + "\nnexts: \n" + str(self.nexts)
         for k in self.nexts.keys():
             result += "\n" + str(k) + ":\n"
-            for state in self.nexts[k]:
-                result += str(state)
+            # for state in self.nexts[k]:
+            #     result += state
         return result
 
-REGEX_OPS = {'\\': "escape", 
-             '*' : "zeromore", 
-             '+' : "onemore", 
-             '?' : "zeroone", 
-             '.' : "anychar", 
-             '|' : "alternate"}
+# TODO: convert to set
+REGEX_OPS = {'\\', 
+             '*' , 
+             '+' , 
+             '?' , 
+             '.' , 
+             '|' }
 
 # represents a state that doesn't require an input to advance to it
 NO_CHAR = chr(257)
@@ -44,6 +52,7 @@ class NFA(object):
         self.currentStates = []
         self.startState = self._parsePattern(pattern)
         self.reset()
+# 
 
 # parses the regex pattern into an NFA and returns the first state of the NFA
     def _parsePattern(self, pattern):
@@ -53,6 +62,7 @@ class NFA(object):
                 n = NFAState(c)
                 stateStack.append(n)
             else :
+                # TODO: add support for grouping/binary ops via OR operator
                 if c == '+' or c == '*':
                     # add transition via previous state's letter back to itself
                     repeatedState = stateStack.pop()
@@ -97,7 +107,6 @@ class NFA(object):
             curState.addNextState(prevState)
 
             prevState = curState
-
         return prevState
 
 
@@ -112,10 +121,13 @@ class NFA(object):
         newStates = []
         while self.currentStates:
             sa = self.currentStates.pop()
+            # a*a*a* case exponential because duplicate states added to list
             if ANY_CHAR in sa.nexts and ord(letter) < 256 and ord(letter) >= 0:
                 # any char state transition
                 newStates.extend(sa.nexts[ANY_CHAR])
             elif sa.nexts.keys() and NO_CHAR in sa.nexts and letter not in sa.nexts:
+                # TODO: simplify by adding all noCharStates to new states
+                # TODO: fix cycles of NO_CHAR states linked to each other
                 # auto-advance to next state by adding all possible next 
                 # states from the split to list currentStates to be processed
                 self.currentStates.extend(sa.nexts[NO_CHAR])
@@ -136,6 +148,25 @@ class NFA(object):
         return False
 
     def __str__(self):
-        return "NFA: \n" + str(self.startState) + "\n\nCurrent States: " + str(self.currentStates)
+        result = "NFA: \n" + str(self.startState)
+        seenStates = set()
+        seenStates.add(self.startState)
+        
+        toExamine = []
+        toExamine.extend(self.startState.getNextStates())
+        
+        prevLen = 0
+
+        while len(seenStates) != prevLen:
+            prevLen = len(seenStates)
+            newToExamine = []
+            for s in toExamine:
+                if s not in seenStates:
+                    result += "\n" + str(s)
+                    seenStates.add(s)
+                    newToExamine.extend(s.getNextStates().difference(seenStates))
+            toExamine = newToExamine
+        result += "\n\n Current States: \n" + str(list(map(str, self.currentStates)))
+        return result
         
 

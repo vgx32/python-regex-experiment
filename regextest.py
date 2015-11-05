@@ -17,10 +17,40 @@ from regexengine import *
 #   - 0 or more: e*
 #   - 1 or more: e+
 
+# current implementation
+    # based on NFA state transition to find a match (linear)
+    # alternative -- string match against pattern and backtrack when fails
+
+# Features to implement/improvements
+    # special char Escape
+    # Grouping
+    # ListOfChars
+    # RangeOfChars
+    # BeginningOfLine
+    # EndOfLine
+    # Backreference
+    # replace?
+    # SearchInFile 
+    # convert NFA to DFA for simpler state traversal logic
+
 
 class TestRegexMethods(unittest.TestCase):
     """unit tests for RegexMatcher"""
     # core test methods
+
+# TODO for Friday:
+    # figure out why the below test fails
+    # implement grouping
+    # no-char states:
+        # 1. can't create cycles between themselves
+        # 2. state that has a no-char transition auto-advances to next state
+    # code cleanup/increase my understanding of it
+    # a*a*a* case -- analyze NFA
+
+
+
+
+   
     def test1SingleChar(self):
         r = RegexMatcher("a")
         self.assertEqual(r.matchFirst("a"), (0, "a"))
@@ -93,24 +123,31 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchFirst(testStr), (0, "cX"))
         self.assertEqual(r.matchAll(testStr), [(0,"cX"), (5,"cbX"), (11,"cabX"), (17,"caX"), (21,"cX")])
 
-    def test9AnyChar(self):
-        r = RegexMatcher(".")
-        testStr = "ab23%"
-        self.assertEqual(r.matchFirst(testStr), (0, "a"))
-        self.assertEqual(r.matchAll(testStr), [(0,"a"), (1,"b"), (2,"2"), (3,"3"), (4,"%")])
-    
-    def test9EscapeChar(self):
-        r = RegexMatcher("\.\(\)")
-        testStr = "a.()bc.()\n\t sdf"
-        self.assertEqual(r.matchFirst(testStr), (1, ".()"))
-        self.assertEqual(r.matchAll(testStr), [(1,".()"), (4,".()")])
-
-    def testAGroup(self):
+    def test9Group(self):
         r = RegexMatcher("(ab)+t")
         testStr = "abt1209 ;asdnl ababt24309laxlababababt"
         self.assertEqual(r.matchFirst(testStr), (0, abt))
         self.assertEqual(r.matchAll(testStr), [(0,"abt"), (15,"ababt"), (29,"ababababt")])
 
+    def test9Break(self):
+        # TODO -- make this test pass
+        r = RegexMatcher("ab*")
+        self.assertEqual(r.matchFirst("aeii"), [(0,"a")])
+        self.assertEqual(r.matchAll("aeii"), [(0,"a")])
+
+    def testAAnyChar(self):
+        r = RegexMatcher(".")
+        testStr = "ab23%"
+        self.assertEqual(r.matchFirst(testStr), (0, "a"))
+        self.assertEqual(r.matchAll(testStr), [(0,"a"), (1,"b"), (2,"2"), (3,"3"), (4,"%")])
+    
+    def testAEscapeChar(self):
+        r = RegexMatcher("\.\(\)")
+        testStr = "a.()bc.()\n\t sdf"
+        self.assertEqual(r.matchFirst(testStr), (1, ".()"))
+        self.assertEqual(r.matchAll(testStr), [(1,".()"), (4,".()")])
+
+    
 # use as E2E test
     def testAMultiplePatterns(self):
         pass
