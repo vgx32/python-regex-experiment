@@ -49,7 +49,7 @@ class NFA(object):
     """ represents a container object for a Nondeterministic Finite Automaton """
     def __init__(self, pattern):
         self.pattern = pattern
-        self.currentStates = []
+        self.currentStates = set()
         self.startState = self._parsePattern(pattern)
         self.reset()
 # 
@@ -112,32 +112,31 @@ class NFA(object):
 
 # puts the NFA back to its start state
     def reset(self):
-        if self.currentStates != [self.startState]:
-            self.currentStates = [self.startState]
+        self.currentStates = set([self.startState])
 
 # advances to the next state(s) in the NFA
 # returns true if advancement is successful otherwise false
     def advanceStates(self, letter):
-        newStates = []
+        newStates = set()
         while self.currentStates:
-            sa = self.currentStates.pop()
+            curState = self.currentStates.pop()
             # a*a*a* case exponential because duplicate states added to list
-            if ANY_CHAR in sa.nexts and ord(letter) < 256 and ord(letter) >= 0:
+            if ANY_CHAR in curState.nexts and ord(letter) < 256 and ord(letter) >= 0:
                 # any char state transition
-                newStates.extend(sa.nexts[ANY_CHAR])
-            elif sa.nexts.keys() and NO_CHAR in sa.nexts and letter not in sa.nexts:
+                newStates.update(set(curState.nexts[ANY_CHAR]))
+            elif curState.nexts.keys() and NO_CHAR in curState.nexts and letter not in curState.nexts:
                 # TODO: simplify by adding all noCharStates to new states
                 # TODO: fix cycles of NO_CHAR states linked to each other
                 # auto-advance to next state by adding all possible next 
                 # states from the split to list currentStates to be processed
-                self.currentStates.extend(sa.nexts[NO_CHAR])
-            elif letter in sa.nexts:
-                newStates.extend(sa.nexts[letter])
+                self.currentStates.update(set(curState.nexts[NO_CHAR]))
+            elif letter in curState.nexts:
+                newStates.update(set(curState.nexts[letter]))
             
 
         if newStates:
             self.currentStates = newStates
-        return newStates != []
+        return newStates != set()
 
 
 # returns true if any of the current NFA states are finished states
