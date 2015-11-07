@@ -118,25 +118,44 @@ class NFA(object):
 # returns true if advancement is successful otherwise false
     def advanceStates(self, letter):
         newStates = set()
+
         while self.currentStates:
             curState = self.currentStates.pop()
-            # a*a*a* case exponential because duplicate states added to list
-            if ANY_CHAR in curState.nexts and ord(letter) < 256 and ord(letter) >= 0:
+            # FIXED a*a*a* case exponential because duplicate states added to list
+            if ANY_CHAR in curState.nexts:
                 # any char state transition
                 newStates.update(set(curState.nexts[ANY_CHAR]))
-            elif curState.nexts.keys() and NO_CHAR in curState.nexts and letter not in curState.nexts:
-                # TODO: simplify by adding all noCharStates to new states
+            elif letter in curState.nexts:
+                newStates.update(set(curState.nexts[letter]))
+
+            # convert to while loop? that traverses states -- may break on a(b*c*)*
+            # auto-advance if a current state has no-char transition
+            if NO_CHAR in curState.nexts:
+                # FIXED TODO: simplify by adding all noCharStates to new states
                 # TODO: fix cycles of NO_CHAR states linked to each other
                 # auto-advance to next state by adding all possible next 
                 # states from the split to list currentStates to be processed
                 self.currentStates.update(set(curState.nexts[NO_CHAR]))
-            elif letter in curState.nexts:
-                newStates.update(set(curState.nexts[letter]))
-            
+ 
+        newStates = self._autoAdvanceNoChars(newStates)
 
         if newStates:
             self.currentStates = newStates
         return newStates != set()
+
+    # auto-advance all no-char transitions in stateSet
+    def _autoAdvanceNoChars(self, stateSet):
+        prevLen = 0
+        curLen = len(stateSet)
+        while prevLen != curLen:
+            addedStates = set()
+            prevLen = curLen
+            for s in stateSet:
+                if NO_CHAR in s.nexts:
+                    addedStates.update(set(s.nexts[NO_CHAR]))
+            stateSet.update(addedStates)
+            curLen = len(stateSet)
+        return stateSet
 
 
 # returns true if any of the current NFA states are finished states

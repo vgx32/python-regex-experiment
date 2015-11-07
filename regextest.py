@@ -132,7 +132,7 @@ class TestRegexMethods(unittest.TestCase):
     def test9Break(self):
         # TODO -- make this test pass
         r = RegexMatcher("ab*")
-        self.assertEqual(r.matchFirst("aeii"), [(0,"a")])
+        self.assertEqual(r.matchFirst("aeii"), (0,"a"))
         self.assertEqual(r.matchAll("aeii"), [(0,"a")])
 
     def testAAnyChar(self):
