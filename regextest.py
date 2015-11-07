@@ -39,16 +39,13 @@ class TestRegexMethods(unittest.TestCase):
     # core test methods
 
 # TODO for Friday:
-    # figure out why the below test fails
+    # figure out why 9Break Fails -- done
     # implement grouping
     # no-char states:
-        # 1. can't create cycles between themselves
-        # 2. state that has a no-char transition auto-advances to next state
+        # 1. can't create cycles between themselves (tied to grouping)
+        # 2. state that has a no-char transition auto-advances to next state -- done
     # code cleanup/increase my understanding of it
-    # a*a*a* case -- analyze NFA
-
-
-
+    # a*a*a* case -- analyze NFA, likely done due to using sets instead of list. VERIFY
 
    
     def test1SingleChar(self):
@@ -126,11 +123,16 @@ class TestRegexMethods(unittest.TestCase):
     def test9Group(self):
         r = RegexMatcher("(ab)+t")
         testStr = "abt1209 ;asdnl ababt24309laxlababababt"
-        self.assertEqual(r.matchFirst(testStr), (0, abt))
+        self.assertEqual(r.matchFirst(testStr), (0, "abt"))
         self.assertEqual(r.matchAll(testStr), [(0,"abt"), (15,"ababt"), (29,"ababababt")])
 
-    def test9Break(self):
-        # TODO -- make this test pass
+    def test9GroupCyclicalNoChar(self):
+        r = RegexMatcher("a(b*c*)*")
+        testStr = "ab dsac dowabccdepoabbcbcbccccccb"
+        self.assertEqual(r.matchFirst(testStr), (0, "abt"))
+        self.assertEqual(r.matchAll(testStr), [(0,"ab"), (5,"ac"), (11,"abcc"), (19,"abbcbcbccccccb")])
+
+    def test9AutoAdvanceToNoChars(self):
         r = RegexMatcher("ab*")
         self.assertEqual(r.matchFirst("aeii"), (0,"a"))
         self.assertEqual(r.matchAll("aeii"), [(0,"a")])
