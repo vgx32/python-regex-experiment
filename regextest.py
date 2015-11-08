@@ -84,17 +84,17 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchAll(testStr), [(0,"aaab"), (30,"aab"), (34,"ab")])
 
     
-    def test5Alternation(self):
-        r = RegexMatcher("a|B")
-        testStr = "there was a!#@time in BolognAB"
-        self.assertEqual(r.matchFirst(testStr), (7, "a"))
-        self.assertEqual(r.matchAll(testStr), [(7,"a"), (10,"a"), (22,"B"), (29,"B")])
+    # def test5Alternation(self):
+    #     r = RegexMatcher("a|B")
+    #     testStr = "there was a!#@time in BolognAB"
+    #     self.assertEqual(r.matchFirst(testStr), (7, "a"))
+    #     self.assertEqual(r.matchAll(testStr), [(7,"a"), (10,"a"), (22,"B"), (29,"B")])
 
-    def test5Alternation_advanced(self):
-        r = RegexMatcher("a+|Bdg")
-        testStr = "thereaa was aaa!#@time in BdgolognABdg"
-        self.assertEqual(r.matchFirst(testStr), (5, "aa"))
-        self.assertEqual(r.matchAll(testStr), [(5,"aa"), (9,"a"), (12,"aaa"), (26,"Bdg"), (35,"Bdg")])
+    # def test5Alternation_advanced(self):
+    #     r = RegexMatcher("a+|Bdg")
+    #     testStr = "thereaa was aaa!#@time in BdgolognABdg"
+    #     self.assertEqual(r.matchFirst(testStr), (5, "aa"))
+    #     self.assertEqual(r.matchAll(testStr), [(5,"aa"), (9,"a"), (12,"aaa"), (26,"Bdg"), (35,"Bdg")])
 
     def test7ZeroOrMore(self):
         r = RegexMatcher("a*")
@@ -137,7 +137,7 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchFirst("aeii"), (0,"a"))
         self.assertEqual(r.matchAll("aeii"), [(0,"a")])
 
-    def testAAnyChar(self):
+    def test9AnyChar(self):
         r = RegexMatcher(".")
         testStr = "ab23%"
         self.assertEqual(r.matchFirst(testStr), (0, "a"))
