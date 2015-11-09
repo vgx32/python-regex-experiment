@@ -1,6 +1,6 @@
 
 from nfa import NFA
-
+import pdb
 # Regular Expressions to implement:
 #  * single character
 #  	- literal: 'c'
@@ -38,32 +38,31 @@ class RegexMatcher(object):
     def matchFirst(self, inStr, searchStart=0):
         i = searchStart
         startIndex = i
+        prevFinished = False
         self.stateMachine.reset()
         while i < len(inStr):
             curChar = inStr[i]
             advanced = self.stateMachine.advanceStates(curChar)
             i += 1
-            if self.stateMachine.finished():
-                # potential match found;
-                # keep looking for matching chars
-                # print(startIndex, i)
-                if i < len(inStr):
-                    curChar = inStr[i]
-                    advanced = self.stateMachine.advanceStates(curChar)
 
-                while i < len(inStr)-1 and advanced:
-                    i += 1
-                    curChar = inStr[i]
-                    advanced = self.stateMachine.advanceStates(curChar)
-                
-                return (startIndex, inStr[startIndex : i])
+            if not self.stateMachine.finished() and prevFinished:
+                # was previously finished, but is no longer; AKA reached end of match
+                return (startIndex, inStr[startIndex:i-1])
 
+            prevFinished = self.stateMachine.finished()
+             
             if not advanced:
                 self.stateMachine.reset()
                 startIndex = i
-        return ()
 
-# same as match_first, except returns a list of all (int, str)
+        # fencpost to see if we ended on a match
+        if self.stateMachine.finished():
+            return (startIndex, inStr[startIndex:])
+        else:
+            return ()
+
+
+# same as matchFirst, except returns a list of all (int, str)
 # pairs that match the pattern sent to set_pattern
 # if no matches returns []
     def matchAll(self, inStr):
@@ -73,8 +72,8 @@ class RegexMatcher(object):
             result.append(prevMatch)
             startIndex, match = prevMatch
             iOfLastMatch = startIndex + len(match)
-            # inStr = inStr[iOfLastMatch:]
             prevMatch = self.matchFirst(inStr, iOfLastMatch)
+
         return result
 
     def __str__(self):

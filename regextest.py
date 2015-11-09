@@ -40,7 +40,7 @@ class TestRegexMethods(unittest.TestCase):
 
 # TODO for Friday:
     # figure out why 9Break Fails -- done
-    # implement grouping
+    # implement grouping -- done
     # no-char states:
         # 1. can't create cycles between themselves (tied to grouping)
         # 2. state that has a no-char transition auto-advances to next state -- done
@@ -147,34 +147,9 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchFirst(testStr), (0, "a"))
         self.assertEqual(r.matchAll(testStr), [(0,"a"), (1,"b"), (2,"2"), (3,"3"), (4,"%")])
     
-    def testAEscapeChar(self):
-        r = RegexMatcher("\.\(\)")
-        testStr = "a.()bc.()\n\t sdf"
-        self.assertEqual(r.matchFirst(testStr), (1, ".()"))
-        self.assertEqual(r.matchAll(testStr), [(1,".()"), (4,".()")])
-
-    
-# use as E2E test
+# use as E2E test (TODO)
     def testAMultiplePatterns(self):
         pass
-
-    # extra functionality test methods
-
-    def testBListOfChars(self):
-        pass
-
-    def testCRangeOfChars(self):
-        pass
-
-    def testDBeginningOfLine(self):
-        pass
-
-    def testEEndOfLine(self):
-        pass
-
-    def testFSearchInFile(self):
-        pass
-
 
 
 if __name__ == '__main__':

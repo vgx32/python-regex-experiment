@@ -12,7 +12,6 @@ class NFAState(object):
         if not letter:
             letter = state.letter
         
-        # for l in state.letter:
         nextStates = self.nexts.get(letter)
         if nextStates: 
             # state already contains a transition for this letter
@@ -30,8 +29,6 @@ class NFAState(object):
         result = "letter: " + str(self.letter) + "\nfinish: " + str(self.finish) + "\nnexts: \n" + str(self.nexts)
         for k in self.nexts.keys():
             result += "\n" + str(k) + ":\n"
-            # for state in self.nexts[k]:
-            #     result += state
         return result
 
 class NFAFrag():
@@ -110,6 +107,7 @@ NO_CHAR = chr(257)
 ANY_CHAR = chr(258)
 SPLIT = chr(259)
 GROUP_START = chr(260)
+START = chr(261)
 
 class NFA(object):
     """ represents a container object for a Nondeterministic Finite Automaton """
@@ -124,7 +122,6 @@ class NFA(object):
         fragStack = []
         for c in pattern:
             if c not in REGEX_OPS:
-                # n = NFAState(c)
                 newFrag = NFAFrag([NFAState(c)])
                 
                 fragStack.append(newFrag)
@@ -141,7 +138,7 @@ class NFA(object):
                     if c == '*':
                     # add a NO_CHAR transition to skip over entire fragment
                         newFrag.appendToEnterStates(newFrag.exitStates, NO_CHAR)
-                        
+
                     fragStack.append(newFrag)
                 elif c == '?':
                     zeroOneFrag = fragStack.pop()
@@ -159,7 +156,7 @@ class NFA(object):
                     # stateStack.append(anycharState)
                     newFrag = NFAFrag([NFAState(ANY_CHAR)])
                     fragStack.append(newFrag)
-                elif c == '|': # think about this some more
+                elif c == '|': 
                     # on alternation, chain all preceding fragments together,
                     # push back on stack and push splitfrag on top
                     splitFrag = NFAFrag([NFAState(SPLIT)])
@@ -175,6 +172,7 @@ class NFA(object):
                     fragStack.append(groupStartFrag)
 
                 elif c == ')':
+                    # chain stack until the group start fragment is seen
                     group = self._chainStackTillGroup(fragStack)
                     fragStack.append(group)
 
@@ -185,7 +183,7 @@ class NFA(object):
             s.finish = True
 
 # add a non-character first state
-        firstState = NFAState(chr(0))
+        firstState = NFAState(START)
         firstFrag = NFAFrag([firstState])
         firstFrag.appendFragment(nfaFrag)
 
@@ -202,7 +200,6 @@ class NFA(object):
                 # split branch is below the split frag operator
                 curFrag = fragStack.pop()
                 curFrag.addSplitBranch(prevFrag)
-
             else:
                 curFrag.appendFragment(prevFrag)
 
@@ -242,22 +239,12 @@ class NFA(object):
 
         while self.currentStates:
             curState = self.currentStates.pop()
-            # FIXED a*a*a* case exponential because duplicate states added to list
             if ANY_CHAR in curState.nexts:
                 # any char state transition
                 newStates.update(set(curState.nexts[ANY_CHAR]))
             elif letter in curState.nexts:
                 newStates.update(set(curState.nexts[letter]))
 
-            # convert to while loop? that traverses states -- may break on a(b*c*)*
-            # auto-advance if a current state has no-char transition
-            # if NO_CHAR in curState.nexts:
-            #     # FIXED TODO: simplify by adding all noCharStates to new states
-            #     # TODO: fix cycles of NO_CHAR states linked to each other
-            #     # auto-advance to next state by adding all possible next 
-            #     # states from the split to list currentStates to be processed
-            #     self.currentStates.update(set(curState.nexts[NO_CHAR]))
- 
         newStates = self._autoAdvanceNoChars(newStates)
 
         if newStates:
