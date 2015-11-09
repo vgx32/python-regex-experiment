@@ -16,7 +16,7 @@ class NFAState(object):
         nextStates = self.nexts.get(letter)
         if nextStates: 
             # state already contains a transition for this letter
-            nextState.append(state)
+            nextStates.append(state)
         else:
             self.nexts[letter] = [state]
 
@@ -79,13 +79,16 @@ class NFAFrag():
         self.appendToEnterStates(other.enterStates)
 
     def isInitialNoChar(self):
-        return self.startsWithChar(NO_CHAR)
+        return self.startsWithSingleChar(NO_CHAR)
 
     def isSplit(self):
-        return self.startsWithChar(SPLIT) and self.exitStates == self.enterStates
+        return self.startsWithSingleChar(SPLIT) and self.exitStates == self.enterStates 
 
-    def startsWithChar(self, c):
-        return len(self.enterStates) == 1 and self.enterStates[0].letter == c        
+    def isGroupStart(self):
+        return self.startsWithSingleChar(GROUP_START)
+
+    def startsWithSingleChar(self, c):
+        return len(self.enterStates) == 1 and self.enterStates[0].letter == c
 
     def __str__(self):
         result = ""
@@ -106,7 +109,7 @@ REGEX_OPS = {'\\',
 NO_CHAR = chr(257)
 ANY_CHAR = chr(258)
 SPLIT = chr(259)
-START_GROUP = chr(260)
+GROUP_START = chr(260)
 
 class NFA(object):
     """ represents a container object for a Nondeterministic Finite Automaton """
@@ -137,11 +140,8 @@ class NFA(object):
                     # repeatedState.addNextState(repeatedState)
                     if c == '*':
                     # add a NO_CHAR transition to skip over entire fragment
-                        # pdb.set_trace()
                         newFrag.appendToEnterStates(newFrag.exitStates, NO_CHAR)
-                        # transitioning to this state's enterState shouldn't require input
-                        # repeatedState.letter = NO_CHAR
-                        # noCharState.addNextState(repeatedState, NO_CHAR)
+                        
                     fragStack.append(newFrag)
                 elif c == '?':
                     zeroOneFrag = fragStack.pop()
@@ -166,13 +166,17 @@ class NFA(object):
 
                     altBranch = self._chainFragStack(fragStack)
                     fragStack.append(altBranch)
-                    # split.addNextState(altBranch)
+                    
                     # put state chain back onto the stack & repeat the above steps
                     fragStack.append(splitFrag)
-                elif c == '(' or c == ')':
-                    pass
+                elif c == '(':
+                    # mark start of group on stack
+                    groupStartFrag =  NFAFrag([NFAState(GROUP_START)])
+                    fragStack.append(groupStartFrag)
 
-
+                elif c == ')':
+                    group = self._chainStackTillGroup(fragStack)
+                    fragStack.append(group)
 
         nfaFrag = self._chainFragStack(fragStack)
         
@@ -191,7 +195,6 @@ class NFA(object):
 # and bottom of stack being the first state in the chain) returns the first state in the chain
     def _chainFragStack(self, fragStack):
         prevFrag = fragStack.pop()
-        # prevState.finish = True 
         while fragStack:
             curFrag = fragStack.pop()
 
@@ -206,16 +209,24 @@ class NFA(object):
             prevFrag = curFrag
         return prevFrag
 
-    # def _chainStateStack(self, stateStack):
-    #     prevState = stateStack.pop()
-    #     prevState.finish = True 
-    #     while stateStack:
-    #         curState = stateStack.pop()
-         
-    #         curState.addNextState(prevState)
+    def _chainStackTillGroup(self, fragStack):
+        prevFrag = fragStack.pop()
+        while fragStack:
+            curFrag = fragStack.pop()
 
-    #         prevState = curState
-    #     return prevState
+            if curFrag.isGroupStart():
+                return prevFrag
+
+            if curFrag.isSplit():
+                # split branch is below the split frag operator
+                curFrag = fragStack.pop()
+                curFrag.addSplitBranch(prevFrag)
+
+            else:
+                curFrag.appendFragment(prevFrag)
+
+            prevFrag = curFrag
+        return prevFrag
 
 
 # puts the NFA back to its start state

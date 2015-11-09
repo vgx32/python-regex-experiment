@@ -69,7 +69,6 @@ class TestRegexMethods(unittest.TestCase):
         testStr = "abctewln230Q#MLABCabccsabc"
         self.assertEqual(r.matchFirst(testStr), (0, "abc"))
         self.assertEqual(r.matchAll(testStr), [(0,"abc"), (18,"abcc"), (23,"abc")])
-        
 
     def test4OneOrMore(self):
         r = RegexMatcher("a+")
@@ -101,12 +100,11 @@ class TestRegexMethods(unittest.TestCase):
         self.assertEqual(r.matchFirst(testStr), (0, "th"))
         self.assertEqual(r.matchAll(testStr), [(0,"th"),(5,"aa"), (9,"a"), (12,"aaa"), (18, "ti"), (26,"Bdg"), (35,"Bdg")])
 
-
     def test7ZeroOrMore(self):
         r = RegexMatcher("a*")
-        testStr = "there was aa!#@time in BolognAB"
+        testStr = "there was aa!#@time in BolognABaa"
         self.assertEqual(r.matchFirst(testStr), (7, "a"))
-        self.assertEqual(r.matchAll(testStr), [(7,"a"), (10,"aa")])
+        self.assertEqual(r.matchAll(testStr), [(7,"a"), (10,"aa"), (31, "aa")])
 
     def test7ZeroOrMore_advanced(self):
         r = RegexMatcher("ba*b")
@@ -135,7 +133,7 @@ class TestRegexMethods(unittest.TestCase):
     def test9GroupCyclicalNoChar(self):
         r = RegexMatcher("a(b*c*)*")
         testStr = "ab dsac dowabccdepoabbcbcbccccccb"
-        self.assertEqual(r.matchFirst(testStr), (0, "abt"))
+        self.assertEqual(r.matchFirst(testStr), (0, "ab"))
         self.assertEqual(r.matchAll(testStr), [(0,"ab"), (5,"ac"), (11,"abcc"), (19,"abbcbcbccccccb")])
 
     def test9AutoAdvanceToNoChars(self):
