@@ -47,20 +47,42 @@ class NFAFrag():
     # updates self's exitStates to stateList
     def appendToExitStates(self, stateList, letter=None):
         self._appendStates(self.exitStates, stateList, letter)
-        
+
+    #  creates transition from self's enter states to stateList
     def appendToEnterStates(self, stateList, letter=None):
         self._appendStates(self.enterStates, stateList, letter)
 
+    # creates a transition from fromStates to toStates, if letter is specified, then it's used as
+    # the transition character for all states
     def _appendStates(self, fromStates, toStates, letter=None):
         for fs in fromStates:
             for ts in toStates:
                 fs.addNextState(ts, letter)
 
-    # appends other to the end of self, updating self's exitStates to be other's exitStates
+    # appends other to the exitStates of self, updating self's exitStates to be other's exitStates
     def appendFragment(self, other):
         self.appendToExitStates(other.enterStates)
         self.exitStates = other.exitStates
         return self
+
+    # if self doesn't start with NC transition, then prepend an NC transition enterState to self
+    # merge other's exitStates with self's and append other to self's enterStates
+    def addSplitBranch(self, other):
+        if not self.isInitialNoChar():
+            ncStartState = [NFAState(NO_CHAR)]
+            self._appendStates(ncStartState, self.enterStates)
+            self.enterStates = ncStartState
+
+        # merge exit states
+        self.exitStates.extend(other.exitStates)
+
+        self.appendToEnterStates(other.enterStates)
+
+    def isInitialNoChar(self):
+        return len(self.enterStates) == 1 and self.enterStates[0] == NO_CHAR
+
+    def isSplit(self):
+        return len(self.enterStates) == 1 and self.exitStates == self.enterStates and self.enterStates[0].letter == SPLIT
 
     def __str__(self):
         result = ""
@@ -81,6 +103,7 @@ REGEX_OPS = {'\\',
 NO_CHAR = chr(257)
 ANY_CHAR = chr(258)
 SPLIT = chr(259)
+START_GROUP = chr(260)
 
 class NFA(object):
     """ represents a container object for a Nondeterministic Finite Automaton """
@@ -117,15 +140,6 @@ class NFA(object):
                         # repeatedState.letter = NO_CHAR
                         # noCharState.addNextState(repeatedState, NO_CHAR)
                     fragStack.append(newFrag)
-                # elif c == '|': # think about this some more
-                #     # all current states in stack are a valid path; set finish=True
-                #     # on the top state & chain all states in stack together
-                #     split = NFAState(NO_CHAR)
-
-                #     altBranch = self._chainStateStack(stateStack)
-                #     split.addNextState(altBranch)
-                #     # put state chain back onto the stack & repeat the above steps
-                #     stateStack.append(split)
                 elif c == '?':
                     zeroOneFrag = fragStack.pop()
                     # add a NO_CHAR state to begining of zero-oned frag for auto-skip
@@ -142,6 +156,20 @@ class NFA(object):
                     # stateStack.append(anycharState)
                     newFrag = NFAFrag([NFAState(ANY_CHAR)])
                     fragStack.append(newFrag)
+                elif c == '|': # think about this some more
+                    # on alternation, chain all preceding fragments together,
+                    # push back on stack and push splitfrag on top
+                    splitFrag = NFAFrag([NFAState(SPLIT)])
+
+                    altBranch = self._chainFragStack(fragStack)
+                    fragStack.append(altBranch)
+                    # split.addNextState(altBranch)
+                    # put state chain back onto the stack & repeat the above steps
+                    fragStack.append(splitFrag)
+                elif c == '(' or c == ')':
+                    pass
+
+
 
         nfaFrag = self._chainFragStack(fragStack)
         
@@ -163,8 +191,14 @@ class NFA(object):
         # prevState.finish = True 
         while fragStack:
             curFrag = fragStack.pop()
-         
-            curFrag.appendFragment(prevFrag)
+
+            if curFrag.isSplit():
+                # split branch is below the split frag operator
+                curFrag = fragStack.pop()
+                curFrag.addSplitBranch(prevFrag)
+
+            else:
+                curFrag.appendFragment(prevFrag)
 
             prevFrag = curFrag
         return prevFrag
