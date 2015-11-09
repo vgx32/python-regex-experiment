@@ -79,10 +79,13 @@ class NFAFrag():
         self.appendToEnterStates(other.enterStates)
 
     def isInitialNoChar(self):
-        return len(self.enterStates) == 1 and self.enterStates[0] == NO_CHAR
+        return self.startsWithChar(NO_CHAR)
 
     def isSplit(self):
-        return len(self.enterStates) == 1 and self.exitStates == self.enterStates and self.enterStates[0].letter == SPLIT
+        return self.startsWithChar(SPLIT) and self.exitStates == self.enterStates
+
+    def startsWithChar(self, c):
+        return len(self.enterStates) == 1 and self.enterStates[0].letter == c        
 
     def __str__(self):
         result = ""
