@@ -2,7 +2,7 @@
 import pdb
 
 class NFAState(object):
-    """ a single state in a Nondeterministic finite state automaton"""
+
     def __init__(self, letter, finish=False):
         self.letter = letter
         self.finish = finish
@@ -33,12 +33,9 @@ class NFAState(object):
 
 class NFAFrag():
 
-    def __init__(self, enterStates, exitStates=None):
-        self.enterStates = enterStates
-        if exitStates:
-            self.exitStates = exitStates
-        else:
-            self.exitStates = enterStates
+    def __init__(self, enterState):
+        self.enterStates = [enterState]
+        self.exitStates = self.enterStates 
     
     # creates a transition from self's exitStates to all states in stateList
     # updates self's exitStates to stateList
@@ -92,9 +89,7 @@ class NFAFrag():
         result += "Enter States: \n" + str(list(map(str, self.enterStates)))
         result += "\nExit States: \n" + str(list(map(str, self.exitStates)))
 
-
-REGEX_OPS = {'\\', 
-             '*' , 
+REGEX_OPS = {'*' , 
              '+' , 
              '?' , 
              '.' , 
@@ -122,13 +117,13 @@ class NFA(object):
         fragStack = []
         for c in pattern:
             if c not in REGEX_OPS:
-                newFrag = NFAFrag([NFAState(c)])
+                newFrag = NFAFrag(NFAState(c))
                 
                 fragStack.append(newFrag)
             else :
                 if c == '+' or c == '*':
-                    # add NO_CHAR transition from topFrag's exitStates to entryStates
-                    newFrag = NFAFrag([NFAState(NO_CHAR)])
+                    # add NO_CHAR transition from topFrag's exitStates to enterStates
+                    newFrag = NFAFrag(NFAState(NO_CHAR))
                     topFrag = fragStack.pop()
                     newFrag.appendFragment(topFrag)
                     
@@ -143,7 +138,7 @@ class NFA(object):
                 elif c == '?':
                     zeroOneFrag = fragStack.pop()
                     # add a NO_CHAR state to begining of zero-oned frag for auto-skip
-                    zeroOneFragInit =  NFAFrag([NFAState(NO_CHAR)])
+                    zeroOneFragInit =  NFAFrag(NFAState(NO_CHAR))
                     zeroOneFragInit.appendFragment(zeroOneFrag)
                     zeroOneFrag = zeroOneFragInit
 
@@ -154,59 +149,49 @@ class NFA(object):
                 elif c == '.':
                     # anycharState = NFAState(ANY_CHAR)
                     # stateStack.append(anycharState)
-                    newFrag = NFAFrag([NFAState(ANY_CHAR)])
+                    newFrag = NFAFrag(NFAState(ANY_CHAR))
                     fragStack.append(newFrag)
                 elif c == '|': 
                     # on alternation, chain all preceding fragments together,
                     # push back on stack and push splitfrag on top
-                    splitFrag = NFAFrag([NFAState(SPLIT)])
+                    splitFrag = NFAFrag(NFAState(SPLIT))
 
-                    altBranch = self._chainFragStack(fragStack)
+                    altBranch = self._chainStackGroup(fragStack)
                     fragStack.append(altBranch)
                     
                     # put state chain back onto the stack & repeat the above steps
                     fragStack.append(splitFrag)
                 elif c == '(':
                     # mark start of group on stack
-                    groupStartFrag =  NFAFrag([NFAState(GROUP_START)])
+                    groupStartFrag =  NFAFrag(NFAState(GROUP_START))
                     fragStack.append(groupStartFrag)
 
                 elif c == ')':
                     # chain stack until the group start fragment is seen
-                    group = self._chainStackTillGroup(fragStack)
+                    group = self._chainStackGroup(fragStack)
                     fragStack.append(group)
 
-        nfaFrag = self._chainFragStack(fragStack)
+        nfaFrag = self._chainStackGroup(fragStack)
         
-        # set all end states to be finish states
-        for s in nfaFrag.exitStates:
-            s.finish = True
+        # pattern was a well-formed regular expression w/ matching parens
+        if not fragStack:
+            # set all end states to be finish states
+            for s in nfaFrag.exitStates:
+                s.finish = True
 
-# add a non-character first state
-        firstState = NFAState(START)
-        firstFrag = NFAFrag([firstState])
-        firstFrag.appendFragment(nfaFrag)
+            # add a non-character first state
+            firstState = NFAState(START)
+            firstFrag = NFAFrag(firstState)
+            firstFrag.appendFragment(nfaFrag)
 
-        return firstState
+            return firstState
+        else:
+            # notify library user that an error occurred in parsing pattern
+            return None
 
-# links all states in the passed stateStack parameter (top of stack being the last state
-# and bottom of stack being the first state in the chain) returns the first state in the chain
-    def _chainFragStack(self, fragStack):
-        prevFrag = fragStack.pop()
-        while fragStack:
-            curFrag = fragStack.pop()
-
-            if curFrag.isSplit():
-                # split branch is below the split frag operator
-                curFrag = fragStack.pop()
-                curFrag.addSplitBranch(prevFrag)
-            else:
-                curFrag.appendFragment(prevFrag)
-
-            prevFrag = curFrag
-        return prevFrag
-
-    def _chainStackTillGroup(self, fragStack):
+# chains all fragments in fragStack into a single fragment until stack is empty or
+# or a groupStart fragment has been seen
+    def _chainStackGroup(self, fragStack):
         prevFrag = fragStack.pop()
         while fragStack:
             curFrag = fragStack.pop()
@@ -224,7 +209,6 @@ class NFA(object):
 
             prevFrag = curFrag
         return prevFrag
-
 
 # puts the NFA back to its start state
     def reset(self):
@@ -264,7 +248,6 @@ class NFA(object):
             stateSet.update(addedStates)
             curLen = len(stateSet)
         return stateSet
-
 
 # returns true if any of the current NFA states are finished states
     def finished(self):

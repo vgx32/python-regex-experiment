@@ -5,14 +5,13 @@ import pdb
 #  * single character
 #  	- literal: 'c'
 #  	- anychar: '.'
-#  	- list of chars: '[abc]'
-#  	- range of chars: '[a-z]'
 #  * concatenation of expressions:  e1e2  (where e1 & e2 can be any regexes)
 #  * alternation of expressions:  e1|e2
 #  * repeats: 
 #  	- 0 or one:  e?
 #  	- 0 or more: e*
 #  	- 1 or more: e+
+#  * grouping (23|1)+
 
 
 class RegexMatcher(object):

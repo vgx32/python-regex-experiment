@@ -30,8 +30,6 @@ from regexengine import *
     # EndOfLine
     # Backreference
     # replace?
-    # SearchInFile 
-    # convert NFA to DFA for simpler state traversal logic
 
 
 class TestRegexMethods(unittest.TestCase):
