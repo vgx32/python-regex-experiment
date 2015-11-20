@@ -29,37 +29,32 @@ class RegexMatcher(object):
         self.pattern = pattern
         self.stateMachine = NFA(pattern)
 
-        
+    def findLongestMatch(self, inStr, i):
+        self.stateMachine.reset()
+        j = i
+        prevFinishedIndex = -1
+        while j < len(inStr) and self.stateMachine.advanceStates(inStr[j]):
+            j += 1
+            if self.stateMachine.finished():
+                prevFinishedIndex = j
+
+        if prevFinishedIndex != -1:
+            return inStr[i:prevFinishedIndex]
+        else:
+            return ""
+
 # returns a tuple of (int, str) that contains the integer of the index
 # of the first char matching the pattern in input string and the str that
 # matches the pattern
 # if no match if found, returns a () empty tuple
     def matchFirst(self, inStr, searchStart=0):
-        i = searchStart
-        startIndex = i
-        prevFinished = False
         self.stateMachine.reset()
-        while i < len(inStr):
-            curChar = inStr[i]
-            advanced = self.stateMachine.advanceStates(curChar)
-            i += 1
-
-            if not self.stateMachine.finished() and prevFinished:
-                # was previously finished, but is no longer; AKA reached end of match
-                return (startIndex, inStr[startIndex:i-1])
-
-            prevFinished = self.stateMachine.finished()
-             
-            if not advanced:
-                self.stateMachine.reset()
-                startIndex = i
-
-        # fencpost to see if we ended on a match
-        if self.stateMachine.finished():
-            return (startIndex, inStr[startIndex:])
-        else:
-            return ()
-
+        for i in range(searchStart, len(inStr)):
+            match = self.findLongestMatch(inStr, i)
+            if match:
+                return (i, match)
+            
+        return ()
 
 # same as matchFirst, except returns a list of all (int, str)
 # pairs that match the pattern sent to set_pattern

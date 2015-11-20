@@ -76,7 +76,7 @@ class NFAFrag():
         return self.startsWithSingleChar(NO_CHAR)
 
     def isSplit(self):
-        return self.startsWithSingleChar(SPLIT) and self.exitStates == self.enterStates 
+        return self.startsWithSingleChar(ALTERNATE) and self.exitStates == self.enterStates 
 
     def isGroupStart(self):
         return self.startsWithSingleChar(GROUP_START)
@@ -97,12 +97,18 @@ REGEX_OPS = {'*' ,
              '(' ,
              ')' }
 
+# 
 # represents a state that doesn't require an input to advance to it
 NO_CHAR = chr(257)
+# transition on any char '.'
 ANY_CHAR = chr(258)
-SPLIT = chr(259)
+# 
+# alternate between two patterns '|'
+ALTERNATE = chr(259)
+# '('
 GROUP_START = chr(260)
-START = chr(261)
+# 
+START_STATE = chr(261)
 
 class NFA(object):
     """ represents a container object for a Nondeterministic Finite Automaton """
@@ -154,7 +160,7 @@ class NFA(object):
                 elif c == '|': 
                     # on alternation, chain all preceding fragments together,
                     # push back on stack and push splitfrag on top
-                    splitFrag = NFAFrag(NFAState(SPLIT))
+                    splitFrag = NFAFrag(NFAState(ALTERNATE))
 
                     altBranch = self._chainStackGroup(fragStack)
                     fragStack.append(altBranch)
@@ -180,7 +186,7 @@ class NFA(object):
                 s.finish = True
 
             # add a non-character first state
-            firstState = NFAState(START)
+            firstState = NFAState(START_STATE)
             firstFrag = NFAFrag(firstState)
             firstFrag.appendFragment(nfaFrag)
 

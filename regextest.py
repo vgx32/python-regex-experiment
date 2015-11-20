@@ -144,7 +144,18 @@ class TestRegexMethods(unittest.TestCase):
         testStr = "ab23%"
         self.assertEqual(r.matchFirst(testStr), (0, "a"))
         self.assertEqual(r.matchAll(testStr), [(0,"a"), (1,"b"), (2,"2"), (3,"3"), (4,"%")])
+
+    # def testA(self):
+    #     r = RegexMatcher("(ab*c)|(b*d)")
+    #     testStr = "abbbbbbbbd"
+    #     self.assertEqual(r.matchFirst(testStr), (1, "bbbbbbbbd"))
     
+    def testA(self):
+        r = RegexMatcher("ababc")
+        testStr = "abababc"
+        self.assertEqual(r.matchFirst(testStr), (2, "ababc"))
+        # self.assertEqual(r.matchAll(testStr), [(0,"a"), (1,"b"), (2,"2"), (3,"3"), (4,"%")])
+
 # use as E2E test (TODO)
     def testAMultiplePatterns(self):
         pass
